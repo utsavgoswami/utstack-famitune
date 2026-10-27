@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -218,3 +218,23 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node.js and Nx
+node_modules/
+dist/
+tmp/
+out-tsc/
+coverage/
+.nx/cache/
+.nx/workspace-data/
+.nx/polygraph/
+.nx/self-healing/
+.nx/migrate-runs/
+.vitest/
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+npm-debug.log*
+
+.nx/polygraph
+.claude/worktrees
+.claude/settings.local.json
