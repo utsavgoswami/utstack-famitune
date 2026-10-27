@@ -1,0 +1,12 @@
+{
+  "name": "@famitune/kb",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Famitune knowledgebase — OKF v0.2 bundle (markdown + YAML frontmatter).",
+  "nx": {
+    "tags": [
+      "scope:kb",
+      "type:docs"
+    ]
+  }
+}

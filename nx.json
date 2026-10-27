@@ -52,7 +52,7 @@
     }
   ],
   "release": {
-    "projects": ["!utils", "!@famitune/source"],
+    "projects": ["!utils", "!@famitune/kb", "!@famitune/source"],
     "version": {
       "preVersionCommand": "npx nx run-many -t build"
     }

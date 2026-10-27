@@ -19,6 +19,9 @@ This repository demonstrates a production-ready TypeScript monorepo with:
 - **1 Internal Library**
   - `@famitune/utils` - Shared utilities (private, not published)
 
+- **1 Knowledgebase**
+  - `@famitune/kb` - Knowledgebase: OKF v0.2 bundle in `packages/kb/` (private, docs only)
+
 ## 🚀 Quick Start
 
 ```bash
@@ -120,7 +123,8 @@ npx nx release publish --projects=@famitune/strings,@famitune/colors
 │   ├── strings/     [scope:strings] - String utilities (publishable)
 │   ├── async/       [scope:async]   - Async utilities (publishable)
 │   ├── colors/      [scope:colors]  - Color utilities (publishable)
-│   └── utils/       [scope:shared]  - Shared utilities (private)
+│   ├── utils/       [scope:shared]  - Shared utilities (private)
+│   └── kb/          [scope:kb]      - Knowledgebase, OKF bundle (private, docs)
 ├── nx.json          - Nx configuration
 ├── tsconfig.json    - TypeScript configuration
 └── eslint.config.mjs - ESLint with module boundary rules
