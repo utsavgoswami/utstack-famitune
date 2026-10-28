@@ -65,6 +65,35 @@ const STEP_SEMITONES: Record<string, number> = {
   B: 11,
 };
 
+/** Canonical sharp-only spelling for each pitch class: [step, alter]. */
+const CANONICAL_SPELLING: Record<number, [string, number]> = {
+  0: ['C', 0],
+  1: ['C', 1],
+  2: ['D', 0],
+  3: ['D', 1],
+  4: ['E', 0],
+  5: ['F', 0],
+  6: ['F', 1],
+  7: ['G', 0],
+  8: ['G', 1],
+  9: ['A', 0],
+  10: ['A', 1],
+  11: ['B', 0],
+};
+
+/**
+ * True when the written (step, alter) differs from the sharp-only spelling
+ * of the written pitch (mapping spec section 1: flats respell to sharps,
+ * pitch-exact). Fractional alters are microtones, not respellings.
+ */
+function needsRespelling(step: string, alter: number, writtenMidi: number): boolean {
+  if (!Number.isInteger(alter)) return false;
+  const pitchClass = ((Math.round(writtenMidi) % 12) + 12) % 12;
+  const canonical = CANONICAL_SPELLING[pitchClass];
+  if (!canonical) return false;
+  return step !== canonical[0] || alter !== canonical[1];
+}
+
 type OrderedKids = unknown[];
 
 interface Tagged {
@@ -156,8 +185,10 @@ export function parseScore(input: string): ParsedScore {
   if (!partwise) {
     throw new MusicXmlParseError('not a MusicXML score: root is neither score-partwise nor score-timewise');
   }
-  const { events, tempoMarks, unhandled, measures, endQuarters } = parsePartwise(partwise.kids);
-  return { events, tempoMap: buildTempoMap(tempoMarks), unhandled, measures, endQuarters };
+  const { events, tempoMarks, unhandled, measures, endQuarters, enharmonicRespellings } = parsePartwise(
+    partwise.kids,
+  );
+  return { events, tempoMap: buildTempoMap(tempoMarks), unhandled, measures, endQuarters, enharmonicRespellings };
 }
 
 /** One measure of the reference (first) part: absolute start and time signature. */
@@ -178,6 +209,8 @@ export interface ParsedScore {
   measures: MeasureInfo[];
   /** Absolute cursor at the end of the first part, in quarter notes. */
   endQuarters: number;
+  /** Written notes respelled to sharp-only output (pitch-exact). */
+  enharmonicRespellings: number;
 }
 
 /** Parse partwise MusicXML into absolute-onset events (tempo map discarded). */
@@ -191,6 +224,7 @@ function parsePartwise(kids: OrderedKids): {
   unhandled: UnhandledConstruct[];
   measures: MeasureInfo[];
   endQuarters: number;
+  enharmonicRespellings: number;
 } {
   const partList = firstChild(kids, 'part-list');
   if (!partList) {
@@ -207,6 +241,7 @@ function parsePartwise(kids: OrderedKids): {
   const unhandled: UnhandledConstruct[] = [];
   const measures: MeasureInfo[] = [];
   let endQuarters = 0;
+  let enharmonicRespellings = 0;
   let partIndex = 0;
   for (const t of tagsOf(kids)) {
     if (t.tag !== 'part') continue;
@@ -216,10 +251,11 @@ function parsePartwise(kids: OrderedKids): {
     }
     const part = parsePart(partId, partIndex, t.kids, tempoMarks, unhandled, measures);
     events.push(...part.events);
+    enharmonicRespellings += part.enharmonicRespellings;
     if (partIndex === 0) endQuarters = part.endQuarters;
     partIndex++;
   }
-  return { events, tempoMarks, unhandled, measures, endQuarters };
+  return { events, tempoMarks, unhandled, measures, endQuarters, enharmonicRespellings };
 }
 
 function parsePart(
@@ -229,10 +265,11 @@ function parsePart(
   tempoMarks: RawTempoMark[],
   unhandled: UnhandledConstruct[],
   measures: MeasureInfo[],
-): { events: MusicEvent[]; endQuarters: number } {
+): { events: MusicEvent[]; endQuarters: number; enharmonicRespellings: number } {
   const events: MusicEvent[] = [];
   let divisions: number | undefined;
   let transposeChromatic = 0;
+  let enharmonicRespellings = 0;
   // Absolute cursor in quarter notes. It carries across measure boundaries:
   // each measure's notes start where the previous measure ended, so onsets
   // are absolute and never derived from note order alone.
@@ -296,6 +333,7 @@ function parsePart(
       } else if (child.tag === 'note') {
         const parsed = parseNote(partId, measureLabel, loc, child.kids, divisions, transposeChromatic, unhandled);
         if (parsed === undefined) continue;
+        if (parsed.respelled) enharmonicRespellings++;
         const onsetQuarters = parsed.chord && haveLastOnset ? lastOnsetQuarters : cursorQuarters;
         events.push({ ...parsed.event, onsetQuarters });
         if (!parsed.chord) {
@@ -332,7 +370,7 @@ function parsePart(
       // appearance: the input profile permits skipping those silently.
     }
   }
-  return { events, endQuarters: cursorQuarters };
+  return { events, endQuarters: cursorQuarters, enharmonicRespellings };
 }
 
 function soundTempo(attrs: Record<string, string>, loc: string): number | undefined {
@@ -404,7 +442,9 @@ function parseNote(
   divisions: number | undefined,
   transposeChromatic: number,
   unhandled: UnhandledConstruct[],
-): { event: Omit<NoteEvent, 'onsetQuarters'> | Omit<RestEvent, 'onsetQuarters'>; chord: boolean } | undefined {
+):
+  | { event: Omit<NoteEvent, 'onsetQuarters'> | Omit<RestEvent, 'onsetQuarters'>; chord: boolean; respelled: boolean }
+  | undefined {
   if (hasChild(kids, 'grace')) {
     unhandled.push({ construct: 'grace-note', part: partId, measure: measureLabel });
     return undefined;
@@ -431,7 +471,7 @@ function parseNote(
   const stream: StreamId = { part: partId, staff, voice };
 
   if (hasChild(kids, 'rest')) {
-    return { event: { kind: 'rest', stream, durationQuarters }, chord };
+    return { event: { kind: 'rest', stream, durationQuarters }, chord, respelled: false };
   }
   const pitch = firstChild(kids, 'pitch');
   if (!pitch) {
@@ -452,6 +492,8 @@ function parseNote(
     unhandled.push({ construct: 'fractional-alter', part: partId, measure: measureLabel });
   }
   const midi = (octave + 1) * 12 + base + alter + transposeChromatic;
+  const writtenMidi = (octave + 1) * 12 + base + alter;
+  const respelled = needsRespelling(step ?? '', alter, writtenMidi);
   let tieStart = false;
   let tieStop = false;
   for (const t of tagsOf(kids)) {
@@ -459,5 +501,5 @@ function parseNote(
     if (t.attrs['@_type'] === 'start') tieStart = true;
     else if (t.attrs['@_type'] === 'stop') tieStop = true;
   }
-  return { event: { kind: 'note', stream, durationQuarters, midi, tieStart, tieStop }, chord };
+  return { event: { kind: 'note', stream, durationQuarters, midi, tieStart, tieStop }, chord, respelled };
 }

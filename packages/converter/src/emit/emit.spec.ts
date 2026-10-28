@@ -45,4 +45,37 @@ describe('emitFamiStudioText', () => {
     expect(report.octaveShiftedNotes).toBe(1);
     expect(text).toMatch(/Value="C7"/);
   });
+
+  it('applies part transposition before naming', () => {
+    const parsed = parseScore(
+      SCORE(
+        `<measure number="1"><attributes><divisions>1</divisions>` +
+          `<transpose><diatonic>-1</diatonic><chromatic>-2</chromatic></transpose>` +
+          `<time><beats>4</beats><beat-type>4</beat-type></time></attributes>` +
+          `<note><pitch><step>D</step><octave>4</octave></pitch><duration>4</duration></note></measure>`,
+      ),
+    );
+    const { text } = convertScoreToText('Transposed', parsed);
+    expect(text).toContain('Value="C3"');
+  });
+
+  it('counts enharmonic respellings into the report', () => {
+    const flat = parseScore(
+      SCORE(
+        `<measure number="1"><attributes><divisions>1</divisions></attributes>` +
+          `<note><pitch><step>E</step><alter>-1</alter><octave>4</octave></pitch><duration>4</duration></note></measure>`,
+      ),
+    );
+    const flatResult = convertScoreToText('Flat', flat);
+    expect(flatResult.report.enharmonicRespellings).toBe(1);
+    expect(flatResult.text).toContain('Value="D#3"');
+
+    const sharp = parseScore(
+      SCORE(
+        `<measure number="1"><attributes><divisions>1</divisions></attributes>` +
+          `<note><pitch><step>D</step><alter>1</alter><octave>4</octave></pitch><duration>4</duration></note></measure>`,
+      ),
+    );
+    expect(convertScoreToText('Sharp', sharp).report.enharmonicRespellings).toBe(0);
+  });
 });

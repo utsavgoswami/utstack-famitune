@@ -38,3 +38,8 @@ Feature: Event conversion to rows
     Given a melody stream with a three-note chord
     When the converter reduces chords
     Then one pitch sounds on that stream's channel and the report counts two dropped chord tones
+
+  Scenario: Rest produces a gap
+    Given a measure with a quarter rest between two notes
+    When the converter quantizes the measure
+    Then no note sounds during the rest and the following note starts at the correct position

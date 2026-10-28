@@ -235,4 +235,29 @@ describeFeature(feature, ({ Scenario }) => {
       expect(report?.chordTonesDropped).toBe(2);
     });
   });
+
+  Scenario('Rest produces a gap', ({ Given, When, Then }) => {
+    let xml = '';
+    let piece: QuantizedPiece | undefined;
+
+    Given('a measure with a quarter rest between two notes', () => {
+      xml = SCORE(
+        '1',
+        `<note><pitch><step>C</step><octave>4</octave></pitch><duration>1</duration></note>` +
+          `<note><rest/><duration>1</duration></note>` +
+          `<note><pitch><step>D</step><octave>4</octave></pitch><duration>1</duration></note>`,
+      );
+    });
+
+    When('the converter quantizes the measure', () => {
+      piece = convertPiece(parseScore(xml)).piece;
+    });
+
+    Then('no note sounds during the rest and the following note starts at the correct position', () => {
+      expect(piece?.notes).toHaveLength(2);
+      expect(piece?.notes.map((n) => n.onsetRow)).toEqual([0, 8]);
+      expect(piece?.notes.map((n) => n.durationRows)).toEqual([4, 4]);
+      expect(piece?.notes.map((n) => n.midi)).toEqual([60, 62]);
+    });
+  });
 });

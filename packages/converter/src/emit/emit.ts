@@ -25,7 +25,8 @@ export interface NamedPitch {
  * the emitted name is the sharp spelling of the sounding MIDI pitch minus
  * 12. Out-of-range pitches move by octaves into C0–B7 (sounding MIDI
  * 24–119); an octave move always lands in range for integer MIDI.
- * Enharmonic respelling is exact in pitch, so it logs no loss.
+ * Enharmonic respelling is exact in pitch; the parse stage counts respelled
+ * notes into `enharmonicRespellings` so the report notes it (mapping §1).
  */
 export function midiToName(midi: number): NamedPitch {
   let value = Math.round(midi) - 12;

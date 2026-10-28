@@ -16,13 +16,14 @@ export interface UnhandledConstruct {
 export interface ConversionReport {
   unhandled: UnhandledConstruct[];
   /** True when the score marks no tempo and conversion used the default. */
-  missingTempoWarning: boolean;
-  /** Rows per quarter note chosen by grid selection (0 when not converted). */
+  missingTempoWarning: boolean;  /** Rows per quarter note chosen by grid selection (0 when not converted). */
   rowsPerQuarter: number;
   /** Maximum absolute-onset quantization error, in NES frames. */
   maxOnsetErrorFrames: number;
   /** Fractional MIDI pitches rounded to the nearest semitone. */
   microtoneRoundings: number;
+  /** Notes whose written spelling differs from sharp-only output (pitch-exact). */
+  enharmonicRespellings: number;
   /** Requested tempo in quarter-note BPM (0 when not converted). */
   requestedBpm: number;
   /** Realized tempo in BPM after frame/groove approximation. */
@@ -48,6 +49,7 @@ export function emptyReport(): ConversionReport {
     rowsPerQuarter: 0,
     maxOnsetErrorFrames: 0,
     microtoneRoundings: 0,
+    enharmonicRespellings: 0,
     requestedBpm: 0,
     actualBpm: 0,
     tempoSetting: '',
@@ -60,13 +62,18 @@ export function emptyReport(): ConversionReport {
 }
 
 /** Build the parse-side report from a parsed score. */
-export function createReport(input: { unhandled: UnhandledConstruct[]; tempoUsedDefault: boolean }): ConversionReport {
+export function createReport(input: {
+  unhandled: UnhandledConstruct[];
+  tempoUsedDefault: boolean;
+  enharmonicRespellings?: number;
+}): ConversionReport {
   return {
     unhandled: input.unhandled.map((u) => ({ ...u })),
     missingTempoWarning: input.tempoUsedDefault,
     rowsPerQuarter: 0,
     maxOnsetErrorFrames: 0,
     microtoneRoundings: 0,
+    enharmonicRespellings: input.enharmonicRespellings ?? 0,
     requestedBpm: 0,
     actualBpm: 0,
     tempoSetting: '',
@@ -98,6 +105,11 @@ export function formatReport(report: ConversionReport): string {
     lines.push(`- Grid: ${report.rowsPerQuarter} rows per quarter note`);
     lines.push(`- Max onset quantization error: ${report.maxOnsetErrorFrames.toFixed(2)} frames`);
     lines.push(`- Microtone roundings: ${report.microtoneRoundings}`);
+    if (report.enharmonicRespellings > 0) {
+      lines.push(
+        `- Enharmonic respellings: ${report.enharmonicRespellings} (flats to sharps, pitch-exact)`,
+      );
+    }
   }
   if (report.tempoSetting !== '') {
     lines.push(

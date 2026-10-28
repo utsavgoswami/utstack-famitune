@@ -233,7 +233,11 @@ describeFeature(feature, ({ Scenario }) => {
     When('the converter parses the score and builds the report', () => {
       const parsed = parseScore(xml);
       events = parsed.events;
-      report = createReport({ unhandled: parsed.unhandled, tempoUsedDefault: parsed.tempoMap.usedDefault });
+      report = createReport({
+        unhandled: parsed.unhandled,
+        tempoUsedDefault: parsed.tempoMap.usedDefault,
+        enharmonicRespellings: parsed.enharmonicRespellings,
+      });
     });
 
     Then('conversion completes for supported content and the report names the unhandled construct', () => {

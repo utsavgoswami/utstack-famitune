@@ -73,6 +73,7 @@ export function convertPiece(parsed: ParsedScore): ConvertedPiece {
     rowsPerQuarter: piece.rowsPerQuarter,
     maxOnsetErrorFrames: piece.maxOnsetErrorFrames,
     microtoneRoundings: piece.microtoneRoundings,
+    enharmonicRespellings: parsed.enharmonicRespellings,
     requestedBpm: tempo.requestedBpm,
     actualBpm: tempo.actualBpm,
     tempoSetting: tempoSettingLabel(tempo),
