@@ -22,6 +22,16 @@ a concept with no `verified` entry is unverified, and a concept past its
 
 # Contents
 
+- [Project: utstack-famitune](/famitune/index.md) — the MusicXML → NES bridge:
+  [overview](/famitune/utstack-famitune-overview.md),
+  [mapping spec](/famitune/musicxml-to-famistudio-mapping.md),
+  [vertical slice plan](/famitune/vertical-slice-plan.md).
+- [MusicXML](/musicxml/index.md) — input-format reference distilled from the
+  w3c-cg/musicxml standard repo.
+- [FamiStudio](/famistudio/index.md) — target-toolchain reference (text format,
+  NES channels, tempo, export) distilled from the BleuBleu/FamiStudio repo.
+- [References](/references/index.md) — the raw gitingest source dumps behind
+  the MusicXML and FamiStudio concepts.
 - [Hackathon](/hackathon/index.md) — hackathon knowledge, starting with the
   [Meta Global AI Developer Hackathon — Participant Guide](/hackathon/meta-global-ai-developer-hackathon.md).
 

@@ -1,0 +1,26 @@
+.page {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+  font-family: system-ui, sans-serif;
+  line-height: 1.55;
+  color: #111827;
+}
+
+.lede {
+  font-size: 1.1rem;
+}
+
+.kind {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-top: -0.5rem;
+}
+
+.diagram {
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}

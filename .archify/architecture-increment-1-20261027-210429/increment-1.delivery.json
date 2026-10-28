@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "a7b3b0d9-c155-4f5c-8be4-502eba46e679",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/agentlab/github/utstack-famitune/.archify/architecture-increment-1-20261027-210429/candidate.json",
+  "output": "/Users/agentlab/github/utstack-famitune/.archify/architecture-increment-1-20261027-210429/increment-1.html",
+  "specification": {
+    "sha256": "cbd2461e8486ec63861aa9fc44be7999ef90782fb0f9d4ce284b39567cd38542",
+    "bytes": 5449
+  },
+  "artifact": {
+    "sha256": "6b7c0bf33ec5cea7769d8bcf03519044192d950fd3040b1655c75922f2dca507",
+    "bytes": 846546
+  }
+}

@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Increment 1: parser core for @famitune/converter",
+    "output": ".archify/architecture-increment-1-20261027-210429/increment-1.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "famistudio",
+      "type": "external",
+      "label": "FamiStudio desktop",
+      "sublabel": "pinned 4.5.x build, external tool",
+      "pos": [
+        40,
+        80
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "musicxml-in",
+      "type": "external",
+      "label": "MusicXML score",
+      "sublabel": "partwise .musicxml file",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "golden",
+      "type": "database",
+      "label": "Golden text export",
+      "sublabel": "fixtures/, one real FamiStudio export",
+      "pos": [
+        300,
+        80
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "pin",
+      "type": "backend",
+      "label": "Pinned version constant",
+      "sublabel": "one config value, stamped later",
+      "pos": [
+        570,
+        80
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "scaffold",
+      "type": "backend",
+      "label": "Package scaffold",
+      "sublabel": "@famitune/converter, Nx + Vitest",
+      "pos": [
+        840,
+        80
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "parser",
+      "type": "backend",
+      "label": "Parser core",
+      "sublabel": "parse/, single part: pitch, rest, duration",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        160,
+        70
+      ]
+    },
+    {
+      "id": "events",
+      "type": "backend",
+      "label": "Event model",
+      "sublabel": "MIDI pitch, absolute onset, duration",
+      "pos": [
+        570,
+        300
+      ],
+      "size": [
+        160,
+        70
+      ]
+    },
+    {
+      "id": "future",
+      "type": "cloud",
+      "label": "Increments 2 to 4",
+      "sublabel": "convert, emit, render, CLI: not built here",
+      "pos": [
+        1080,
+        300
+      ],
+      "size": [
+        160,
+        70
+      ]
+    },
+    {
+      "id": "hello",
+      "type": "database",
+      "label": "Hello World fixture",
+      "sublabel": "fixtures/, C4 whole note in 4/4",
+      "pos": [
+        300,
+        490
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "tests",
+      "type": "backend",
+      "label": "parse.feature tests",
+      "sublabel": "Gherkin on @amiceli/vitest-cucumber",
+      "pos": [
+        570,
+        490
+      ],
+      "size": [
+        160,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "New package: packages/converter",
+      "wraps": [
+        "golden",
+        "pin",
+        "scaffold",
+        "parser",
+        "events",
+        "hello",
+        "tests"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "export-golden",
+      "from": "famistudio",
+      "to": "golden",
+      "label": "txt-export (1.4)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pin-version",
+      "from": "famistudio",
+      "to": "pin",
+      "label": "version (1.3)",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [
+        [
+          120,
+          40
+        ],
+        [
+          650,
+          40
+        ]
+      ]
+    },
+    {
+      "id": "version-match",
+      "from": "pin",
+      "to": "golden",
+      "label": "version match"
+    },
+    {
+      "id": "read-score",
+      "from": "musicxml-in",
+      "to": "parser",
+      "label": "read score (1.5)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "fixture-input",
+      "from": "hello",
+      "to": "parser",
+      "label": "fixture input (task 1.6)",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "produce-events",
+      "from": "parser",
+      "to": "events",
+      "label": "produces"
+    },
+    {
+      "id": "assert-events",
+      "from": "events",
+      "to": "tests",
+      "label": "assert pitch, onset, duration",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "future-input",
+      "from": "events",
+      "to": "future",
+      "label": "input to Increment 3, later",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Built in Increment 1",
+      "items": [
+        "Package scaffold with build, test, and lint targets (task 1.1)",
+        "Parser core for one part: pitch, rest, and duration events (task 1.5)",
+        "Pinned FamiStudio version constant and one golden export (tasks 1.3, 1.4)",
+        "Hello World fixture and Gherkin parse tests (tasks 1.2, 1.6)"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Not built in Increment 1",
+      "items": [
+        "No streams, ties, or tempo map. Those arrive in Increment 2.",
+        "No FamiStudio Text output. The emitter arrives in Increment 3.",
+        "No WAV or NSF rendering. The render loop arrives in Increment 4."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Exit checks",
+      "items": [
+        "nx show project lists build, test, and lint targets",
+        "Parse tests assert MIDI pitch 60, onset 0, duration 4 quarter notes",
+        "Golden file Project Version equals the pinned constant"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  background: #fff;
+}
+
+.player {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.verdict {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  gap: 1.5rem;
+}

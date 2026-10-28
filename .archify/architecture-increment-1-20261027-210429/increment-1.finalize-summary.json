@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/agentlab/github/utstack-famitune/.archify/architecture-increment-1-20261027-210429/candidate.json",
+    "sha256": "cbd2461e8486ec63861aa9fc44be7999ef90782fb0f9d4ce284b39567cd38542",
+    "bytes": 5449
+  },
+  "artifact": {
+    "path": "/Users/agentlab/github/utstack-famitune/.archify/architecture-increment-1-20261027-210429/increment-1.html",
+    "sha256": "6b7c0bf33ec5cea7769d8bcf03519044192d950fd3040b1655c75922f2dca507",
+    "bytes": 846546
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/agentlab/github/utstack-famitune/.archify/architecture-increment-1-20261027-210429/increment-1.finalize.json",
+    "summaryReceipt": "/Users/agentlab/github/utstack-famitune/.archify/architecture-increment-1-20261027-210429/increment-1.finalize-summary.json",
+    "browserCheckReceipt": "/Users/agentlab/github/utstack-famitune/.archify/architecture-increment-1-20261027-210429/increment-1.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-28T01:04:49.646Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 2683,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}
