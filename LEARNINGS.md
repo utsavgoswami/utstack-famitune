@@ -7,6 +7,18 @@ rule.
 
 ## FamiStudio 4.5.0 toolchain
 
+- `dotnet` on PATH can be the wrong runtime even when .NET 8 exists.
+  `FamiStudio -help` failed with "You must install or update .NET" asking
+  for `Microsoft.NETCore.App 8.x` while `dotnet --list-runtimes` showed only
+  7.0.0 — but `~/.dotnet/shared/Microsoft.NETCore.App/` held 8.0.33. The
+  `FamiStudio` shim (`~/.local/bin/FamiStudio`) prefers `$DOTNET_ROOT/dotnet`
+  and falls back to PATH `dotnet` (brew 7.0.100 here). Rule: always run
+  renders with `DOTNET_ROOT=$HOME/.dotnet PATH=$HOME/.dotnet:$PATH`; never
+  declare the toolchain broken until both runtimes are checked.
+- The render wrapper (`src/render/render.ts`) only covers `wav-export` and
+  `nsf-export`. The `.nes` files in `renders/` came from a manual third step:
+  `FamiStudio <txt> rom-export <out.nes>`. Rule: full NES music delivery is
+  three exports (wav + nsf `-nsf-export-mode:ntsc` + rom), not two.
 - Octave labels run one above scientific pitch notation. Render probes prove
   FamiStudio `C3` sounds middle C (261.6 Hz) and `A3` sounds concert A
   (440.5 Hz). The emitter writes the sharp spelling of sounding-MIDI-minus-12.
@@ -28,6 +40,13 @@ rule.
 
 ## Converter implementation
 
+- The CLI (`src/cli/cli.ts`) reads the input path as UTF-8 text: it does not
+  unpack `.mxl`. Passing a `.mxl` zip fails/rejects. Real-world scores
+  (e.g. MuseScore `violin-concerto-...mxl`) are zips with
+  `META-INF/container.xml` pointing at `score.xml` (or a named `.xml`).
+  Rule: unzip first (`zipfile.ZipFile(...).read(rootfile)`) into a
+  `.musicxml` file, then run `famitune-convert`; consider `.mxl` support in
+  the CLI if this recurs.
 - `fast-xml-parser` needs `preserveOrder: true`: grouped parsing loses the
   `<backup>`/`<forward>` interleave the time cursor depends on. Shape notes:
   empty elements parse as `{ tag: [] }`, attributes sit under `:@`, the
