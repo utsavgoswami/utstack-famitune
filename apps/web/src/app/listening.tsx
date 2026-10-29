@@ -6,14 +6,14 @@ import helloWorldXml from '../../../../packages/converter/fixtures/hello-world.m
 import chromaticXml from '../../../../packages/converter/fixtures/chromatic-scale.musicxml?raw';
 import restsTieXml from '../../../../packages/converter/fixtures/rests-and-tie.musicxml?raw';
 import twoStreamXml from '../../../../packages/converter/fixtures/two-stream-excerpt.musicxml?raw';
-import helloWorldWav from '../../../../packages/converter/renders/hello-world/hello-world.wav?url';
-import chromaticWav from '../../../../packages/converter/renders/chromatic-scale/chromatic-scale.wav?url';
-import restsTieWav from '../../../../packages/converter/renders/rests-and-tie/rests-and-tie.wav?url';
-import twoStreamWav from '../../../../packages/converter/renders/two-stream-excerpt/two-stream-excerpt.wav?url';
-import helloWorldNsf from '../../../../packages/converter/renders/hello-world/hello-world.nsf?url';
-import chromaticNsf from '../../../../packages/converter/renders/chromatic-scale/chromatic-scale.nsf?url';
-import restsTieNsf from '../../../../packages/converter/renders/rests-and-tie/rests-and-tie.nsf?url';
-import twoStreamNsf from '../../../../packages/converter/renders/two-stream-excerpt/two-stream-excerpt.nsf?url';
+import helloWorldWav from '../../../../packages/converter/exports/hello-world/hello-world.wav?url';
+import chromaticWav from '../../../../packages/converter/exports/chromatic-scale/chromatic-scale.wav?url';
+import restsTieWav from '../../../../packages/converter/exports/rests-and-tie/rests-and-tie.wav?url';
+import twoStreamWav from '../../../../packages/converter/exports/two-stream-excerpt/two-stream-excerpt.wav?url';
+import helloWorldNsf from '../../../../packages/converter/exports/hello-world/hello-world.nsf?url';
+import chromaticNsf from '../../../../packages/converter/exports/chromatic-scale/chromatic-scale.nsf?url';
+import restsTieNsf from '../../../../packages/converter/exports/rests-and-tie/rests-and-tie.nsf?url';
+import twoStreamNsf from '../../../../packages/converter/exports/two-stream-excerpt/two-stream-excerpt.nsf?url';
 
 type Fixture = {
   id: string;
