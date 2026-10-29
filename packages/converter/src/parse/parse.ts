@@ -3,10 +3,10 @@ import type { UnhandledConstruct } from '../report/report.js';
 import { beatUnitQuarters, buildTempoMap, type RawTempoMark, type TempoMap, type TempoSource } from './tempo.js';
 
 /**
- * Intermediate event model (design D2): the contract between the parse stage
- * and the convert stage. An event carries stream identity, an absolute onset
+ * Intermediate event model: the contract between the parse stage
+ * and the adapt stage. An event carries stream identity, an absolute onset
  * in quarter notes, a duration in quarter notes, and (for pitched notes) a
- * MIDI pitch. The parse stage never uses NES frames; the convert stage never
+ * MIDI pitch. The parse stage never uses NES frames; the adapt stage never
  * reads XML.
  */
 
@@ -26,8 +26,8 @@ export interface NoteEvent {
   durationQuarters: number;
   /**
    * Sounding MIDI pitch: written pitch plus the part `<transpose><chromatic>`
-   * correction. May be fractional when `<alter>` is fractional; the convert
-   * stage rounds it and the report records the rounding (Increment 2/3).
+   * correction. May be fractional when `<alter>` is fractional; the adapt
+   * stage rounds it and the report records the rounding.
    */
   midi: number;
   /** The note carries `<tie type="start">`; merged into one event in Increment 2. */

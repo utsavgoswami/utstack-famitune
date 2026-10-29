@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseScore } from '../parse/parse.js';
-import { convertPiece } from '../convert/convert.js';
-import { convertScoreToText, emitFamiStudioText, midiToName, projectFromConverted } from './emit.js';
+import { adaptPiece } from '../adapt/adapt.js';
+import { convertScoreToText, writeFamiStudioText, midiToName, projectFromAdapted } from './write.js';
 
 const SCORE = (body: string): string =>
   `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="4.0">` +
@@ -17,8 +17,8 @@ describe('midiToName', () => {
   });
 });
 
-describe('emitFamiStudioText', () => {
-  it('emits PatternCustomSettings for pickup length and tempo changes', () => {
+describe('writeFamiStudioText', () => {
+  it('writes PatternCustomSettings for pickup length and tempo changes', () => {
     const parsed = parseScore(
       SCORE(
         `<measure number="1"><attributes><divisions>1</divisions><time><beats>4</beats><beat-type>4</beat-type></time></attributes>` +
@@ -26,8 +26,8 @@ describe('emitFamiStudioText', () => {
           `<measure number="2"><sound tempo="140"/><note><pitch><step>D</step><octave>4</octave></pitch><duration>4</duration></note></measure>`,
       ),
     );
-    const converted = convertPiece(parsed);
-    const { text } = emitFamiStudioText(projectFromConverted('Pickup Tempo', converted, parsed.measures.length));
+    const adapted = adaptPiece(parsed);
+    const { text } = writeFamiStudioText(projectFromAdapted('Pickup Tempo', adapted, parsed.measures.length));
     expect(text).toContain('PatternCustomSettings Time="0" Length="8"');
     expect(text).toMatch(/PatternCustomSettings Time="0" Length="8" NoteLength="\d+" Groove="[^"]+" BeatLength="\d+" GroovePaddingMode="Middle"/);
     expect(text).toMatch(/PatternCustomSettings Time="1" (Groove="[^"]+"|NoteLength="\d+")/);

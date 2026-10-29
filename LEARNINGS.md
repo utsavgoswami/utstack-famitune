@@ -13,15 +13,18 @@ rule.
   7.0.0 — but `~/.dotnet/shared/Microsoft.NETCore.App/` held 8.0.33. The
   `FamiStudio` shim (`~/.local/bin/FamiStudio`) prefers `$DOTNET_ROOT/dotnet`
   and falls back to PATH `dotnet` (brew 7.0.100 here). Rule: always run
-  renders with `DOTNET_ROOT=$HOME/.dotnet PATH=$HOME/.dotnet:$PATH`; never
+  exports with `DOTNET_ROOT=$HOME/.dotnet PATH=$HOME/.dotnet:$PATH`; never
   declare the toolchain broken until both runtimes are checked.
-- The render wrapper (`src/render/render.ts`) only covers `wav-export` and
-  `nsf-export`. The `.nes` files in `renders/` came from a manual third step:
-  `FamiStudio <txt> rom-export <out.nes>`. Rule: full NES music delivery is
-  three exports (wav + nsf `-nsf-export-mode:ntsc` + rom), not two.
+- `famitune-convert --export` runs all three exports (`wav-export`,
+  `nsf-export -nsf-export-mode:ntsc`, `rom-export -rom-export-mode:ntsc`)
+  and validates the ROM header; the manual `rom-export` step is gone. The
+  ROM mode flag is explicit rather than the project-mode default: `-help`
+  lists `-rom-export-mode:ntsc|pal|dual`, and NTSC matches the converter's
+  frame model, mirroring the NSF export. Rule: when FamiStudio offers a
+  target-machine option, pass it explicitly instead of relying on defaults.
 - Octave labels run one above scientific pitch notation. Render probes prove
   FamiStudio `C3` sounds middle C (261.6 Hz) and `A3` sounds concert A
-  (440.5 Hz). The emitter writes the sharp spelling of sounding-MIDI-minus-12.
+  (440.5 Hz). The writer writes the sharp spelling of sounding-MIDI-minus-12.
   Never trust a doc octave example; render a known note and measure it.
 - Note `Time`/`Duration` count in subrows (1/`NoteLength` of a row), not rows.
   `PatternLength`/`BeatLength`/`PatternCustomSettings Length` stay in rows.
@@ -33,7 +36,7 @@ rule.
 - `PatternInstance` lines are children of each `Channel`, not song-level as
   the upstream docs example suggests. Binding is by containment; names may
   repeat across channels.
-- FamiStudio exits 0 even when an export fails. The render wrapper stats its
+- FamiStudio exits 0 even when an export fails. The export wrapper stats its
   outputs and throws on missing/empty files; never trust the exit code.
 - All-max flat volume envelopes vanish on import/export round trip. Benign:
   max volume is identity, and ladder renders sustain full durations.
@@ -55,15 +58,15 @@ rule.
   errors. Always run test, typecheck, and lint together.
 - Groove search must tie-break toward smaller cycles, or output wobbles
   between equivalents (`8-7` vs `7-8`). A determinism test locks the choice.
-- Pitch stays scientific MIDI through parse and convert. The −12 shift into
-  FamiStudio naming happens exactly once, at emit (`midiToName`).
+- Pitch stays scientific MIDI through parse and adapt. The −12 shift into
+  FamiStudio naming happens exactly once, at write (`midiToName`).
 - OSMD draws tie arcs only from `<notations><tied>`, not from sound-level
   `<tie>`. Fixtures carry both, like real notation exporters.
 
 ## Verification discipline
 
 - Never add tolerance to make a failing check pass without understanding the
-  cause. Octave-tolerant pitch matching once masked a real +1-octave emitter
+  cause. Octave-tolerant pitch matching once masked a real +1-octave writer
   bug. Strict guardrails catch real bugs; loosen only for a proven mechanism,
   documented next to the code.
 - Calibrate pitch analysis on known tones first. Narrow-pulse squares can

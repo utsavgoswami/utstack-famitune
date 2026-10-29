@@ -4,9 +4,9 @@ import { describeFeature, loadFeature } from '@amiceli/vitest-cucumber';
 import { expect } from 'vitest';
 import { parseScore } from '../parse/parse.js';
 import { formatReport } from '../report/report.js';
-import { convertScoreToText } from './emit.js';
+import { convertScoreToText } from './write.js';
 
-const feature = await loadFeature(join(import.meta.dirname, '../../features/emit.feature'));
+const feature = await loadFeature(join(import.meta.dirname, '../../features/write.feature'));
 
 const FIXTURE = join(import.meta.dirname, '../../fixtures/hello-world.musicxml');
 const GOLDEN = join(import.meta.dirname, '../../fixtures/golden-hello-world.txt');

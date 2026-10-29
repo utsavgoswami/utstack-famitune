@@ -1,9 +1,9 @@
 /**
- * Conversion report skeleton (design D5): loss reporting is a data product,
- * not console output. The convert stage returns `{ text, report }`; the CLI
- * prints and optionally writes it. Increment 2 fills the parse-side fields
- * (unhandled constructs, missing-tempo warning); Increment 3 adds the
- * convert-side counts (channel notes, drops, reductions, tempo, error).
+ * Conversion report skeleton: loss reporting is a data product,
+ * not console output. The adapt stage returns `{ text, report }`; the CLI
+ * prints and optionally writes it. Parse fills the parse-side fields
+ * (unhandled constructs, missing-tempo warning); adapt adds the
+ * adapt-side counts (channel notes, drops, reductions, tempo, error).
  */
 
 export interface UnhandledConstruct {

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { FAMISTUDIO_VERSION } from './config.js';
-import { convertScoreToText } from './emit/emit.js';
+import { convertScoreToText } from './write/write.js';
 import { parseScore } from './parse/parse.js';
 
 /**

@@ -1,7 +1,7 @@
 import { FAMISTUDIO_VERSION } from '../config.js';
-import type { ChannelAssignment, MelodicChannel } from '../convert/allocate.js';
-import type { RealizedTempo } from '../convert/tempo.js';
-import { convertPiece, type ConvertedPiece } from '../convert/convert.js';
+import type { ChannelAssignment, MelodicChannel } from '../adapt/allocate.js';
+import type { RealizedTempo } from '../adapt/tempo.js';
+import { adaptPiece, type AdaptedPiece } from '../adapt/adapt.js';
 import type { ParsedScore } from '../parse/parse.js';
 import type { ConversionReport } from '../report/report.js';
 
@@ -71,27 +71,27 @@ export interface SongProject {
   assignments: ChannelAssignment[];
 }
 
-export interface EmittedSong {
+export interface WrittenSong {
   text: string;
   octaveShiftedNotes: number;
   notesPerChannel: Array<{ channel: string; notes: number }>;
 }
 
 /**
- * Render a song project as FamiStudio Text in the Increment 1 golden shape:
+ * Write a song project as FamiStudio Text in the Increment 1 golden shape:
  * pinned `Project Version`, flat starter instruments, one pattern per
  * channel per measure with per-channel `PatternInstance` lines (as children
  * of each Channel, per a real 4.5.0 export), and `PatternCustomSettings`
  * for length overrides and pattern-start tempo changes. `NoteLength` always
  * rides along because the 4.5.0 text loader requires it.
  *
- * Time units (verified against the 4.5.0 loader source and render probes,
+ * Time units (verified against the 4.5.0 loader source and export probes,
  * contradicting the row-based docs): note `Time`/`Duration` are in SUBROWS
  * (1/NoteLength of a row) and scale with the pattern's NoteLength, while
  * `PatternLength`/`BeatLength`/`PatternCustomSettings Length` stay in rows.
- * The emitter multiplies row counts by the pattern's NoteLength base.
+ * The writer multiplies row counts by the pattern's NoteLength base.
  */
-export function emitFamiStudioText(project: SongProject): EmittedSong {
+export function writeFamiStudioText(project: SongProject): WrittenSong {
   const lines: string[] = [];
   const title = escapeAttr(project.title);
   lines.push(`Project Version="${FAMISTUDIO_VERSION}" TempoMode="FamiStudio" Name="${title}"`);
@@ -165,15 +165,15 @@ export function emitFamiStudioText(project: SongProject): EmittedSong {
  * length comes from the first pattern's nominal length; the song tempo is
  * the realized opening tempo.
  */
-export function projectFromConverted(title: string, converted: ConvertedPiece, measureCount: number): SongProject {
-  const firstPattern = converted.patterns[0];
+export function projectFromAdapted(title: string, adapted: AdaptedPiece, measureCount: number): SongProject {
+  const firstPattern = adapted.patterns[0];
   return {
     title,
-    tempo: converted.tempo,
-    beatLength: converted.tempo.beatLength,
+    tempo: adapted.tempo,
+    beatLength: adapted.tempo.beatLength,
     patternLength: firstPattern?.lengthRows ?? 16,
     measureCount,
-    assignments: converted.allocation.assigned,
+    assignments: adapted.allocation.assigned,
   };
 }
 
@@ -183,17 +183,17 @@ export interface ConversionResult {
 }
 
 /**
- * Full convert-and-emit pipeline for one score: parse product in, version
+ * Full adapt-and-write pipeline for one score: parse product in, version
  * stamped FamiStudio Text plus conversion report out. Deterministic:
  * identical input gives byte-identical text.
  */
 export function convertScoreToText(title: string, parsed: ParsedScore): ConversionResult {
-  const converted = convertPiece(parsed);
-  const emitted = emitFamiStudioText(projectFromConverted(title, converted, parsed.measures.length));
+  const adapted = adaptPiece(parsed);
+  const written = writeFamiStudioText(projectFromAdapted(title, adapted, parsed.measures.length));
   const report: ConversionReport = {
-    ...converted.report,
-    octaveShiftedNotes: emitted.octaveShiftedNotes,
-    notesPerChannel: emitted.notesPerChannel,
+    ...adapted.report,
+    octaveShiftedNotes: written.octaveShiftedNotes,
+    notesPerChannel: written.notesPerChannel,
   };
-  return { text: emitted.text, report };
+  return { text: written.text, report };
 }

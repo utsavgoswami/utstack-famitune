@@ -22,7 +22,7 @@ function compareVoice(a: string, b: string): number {
  * Group events into streams by (part, staff, voice).
  * Streams sort deterministically: part in first-seen order, then staff,
  * then voice. Chord tones at one onset stay together in one stream;
- * chord reduction happens later as a convert policy, not here.
+ * chord reduction happens later as an adapt policy, not here.
  */
 export function splitIntoStreams(events: MusicEvent[]): Stream[] {
   const partOrder = new Map<string, number>();

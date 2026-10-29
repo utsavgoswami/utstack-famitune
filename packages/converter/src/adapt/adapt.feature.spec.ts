@@ -3,11 +3,11 @@ import { describeFeature, loadFeature } from '@amiceli/vitest-cucumber';
 import { expect } from 'vitest';
 import { parseScore } from '../parse/parse.js';
 import type { ConversionReport } from '../report/report.js';
-import { convertPiece } from './convert.js';
+import { adaptPiece } from './adapt.js';
 import type { StreamPattern } from './patterns.js';
 import type { QuantizedPiece } from './quantize.js';
 
-const feature = await loadFeature(join(import.meta.dirname, '../../features/convert.feature'));
+const feature = await loadFeature(join(import.meta.dirname, '../../features/adapt.feature'));
 
 const SCORE = (divisions: string, body: string): string =>
   `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="4.0">` +
@@ -35,9 +35,9 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter quantizes the melody', () => {
-      const converted = convertPiece(parseScore(xml));
-      piece = converted.piece;
-      report = converted.report;
+      const adapted = adaptPiece(parseScore(xml));
+      piece = adapted.piece;
+      report = adapted.report;
     });
 
     Then('onsets land on rows 0, 8, 12, and 16 with no error', () => {
@@ -58,9 +58,9 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter quantizes the melody', () => {
-      const converted = convertPiece(parseScore(xml));
-      piece = converted.piece;
-      report = converted.report;
+      const adapted = adaptPiece(parseScore(xml));
+      piece = adapted.piece;
+      report = adapted.report;
     });
 
     Then('the report states the maximum onset error in frames', () => {
@@ -85,9 +85,9 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter converts the score', () => {
-      const converted = convertPiece(parseScore(xml));
-      groove = converted.tempo.groove;
-      report = converted.report;
+      const adapted = adaptPiece(parseScore(xml));
+      groove = adapted.tempo.groove;
+      report = adapted.report;
     });
 
     Then('the song uses a frame groove realized within 1 BPM of 120 as stated in the report', () => {
@@ -109,7 +109,7 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter chunks the melody into patterns', () => {
-      patterns = convertPiece(parseScore(xml)).patterns;
+      patterns = adaptPiece(parseScore(xml)).patterns;
     });
 
     Then('two patterns hold one measure each', () => {
@@ -132,7 +132,7 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter chunks the melody into patterns', () => {
-      patterns = convertPiece(parseScore(xml)).patterns;
+      patterns = adaptPiece(parseScore(xml)).patterns;
     });
 
     Then('the pickup pattern carries a shorter length', () => {
@@ -162,7 +162,7 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter allocates streams to channels', () => {
-      const { allocation } = convertPiece(parseScore(xml));
+      const { allocation } = adaptPiece(parseScore(xml));
       assigned = allocation.assigned.map((a) => ({ channel: a.channel, instrument: a.instrument }));
     });
 
@@ -195,9 +195,9 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter allocates streams to channels', () => {
-      const converted = convertPiece(parseScore(xml));
-      channels = converted.allocation.assigned.map((a) => a.channel);
-      report = converted.report;
+      const adapted = adaptPiece(parseScore(xml));
+      channels = adapted.allocation.assigned.map((a) => a.channel);
+      report = adapted.report;
     });
 
     Then('three streams are converted and the report identifies the dropped stream and its note count', () => {
@@ -224,9 +224,9 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter reduces chords', () => {
-      const converted = convertPiece(parseScore(xml));
-      midis = converted.allocation.assigned.flatMap((a) => a.patterns.flatMap((p) => p.notes.map((n) => n.midi)));
-      report = converted.report;
+      const adapted = adaptPiece(parseScore(xml));
+      midis = adapted.allocation.assigned.flatMap((a) => a.patterns.flatMap((p) => p.notes.map((n) => n.midi)));
+      report = adapted.report;
     });
 
     Then("one pitch sounds on that stream's channel and the report counts two dropped chord tones", () => {
@@ -250,7 +250,7 @@ describeFeature(feature, ({ Scenario }) => {
     });
 
     When('the converter quantizes the measure', () => {
-      piece = convertPiece(parseScore(xml)).piece;
+      piece = adaptPiece(parseScore(xml)).piece;
     });
 
     Then('no note sounds during the rest and the following note starts at the correct position', () => {

@@ -2,7 +2,9 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { convertScoreToText } from '../emit/emit.js';
+import { convertScoreToText } from '../write/write.js';
+import { exportOutputs, isFamiStudioAvailable, type ExportPaths } from '../export/export.js';
+import { verifyNesFile } from '../export/verify.js';
 import { MusicXmlParseError, parseScore } from '../parse/parse.js';
 import { formatReport } from '../report/report.js';
 
@@ -11,7 +13,7 @@ export interface CliIO {
   stderr: (message: string) => void;
 }
 
-const USAGE = 'Usage: famitune-convert <input.musicxml> [--out-dir <directory>]';
+const USAGE = 'Usage: famitune-convert <input.musicxml> [--out-dir <directory>] [--export]';
 
 const processIO: CliIO = {
   stdout: (message) => process.stdout.write(message),
@@ -20,11 +22,29 @@ const processIO: CliIO = {
 
 /**
  * CLI entry: one MusicXML path in, FamiStudio Text plus a conversion report
- * out. Returns the process exit code: 0 on success, 1 on rejected input or
- * unreadable files, 2 on missing arguments. Rejection errors name the
- * problem and, when known, the part/measure location.
+ * out, optionally exported to WAV, NSF, and NES ROM with `--export`.
+ * Returns the process exit code: 0 on success, 1 on rejected input,
+ * unreadable files, or failed export/validation under `--export`, 2 on
+ * missing arguments. Rejection errors name the problem and, when known,
+ * the part/measure location. Without `--export` FamiStudio is never
+ * invoked; with it, the `.txt` and report are written before exporting so
+ * they survive an export failure.
  */
-export async function run(argv: string[], io: CliIO = processIO): Promise<number> {
+export interface CliExportDeps {
+  isExportAvailable: () => Promise<boolean>;
+  runExports: (txtPath: string, outDir: string) => Promise<ExportPaths>;
+}
+
+const defaultExportDeps: CliExportDeps = {
+  isExportAvailable: () => isFamiStudioAvailable(),
+  runExports: (txtPath, outDir) => exportOutputs(txtPath, outDir),
+};
+
+export async function run(
+  argv: string[],
+  io: CliIO = processIO,
+  exportDeps: CliExportDeps = defaultExportDeps,
+): Promise<number> {
   const input = argv.find((arg) => !arg.startsWith('-'));
   if (input === undefined || argv.includes('-h') || argv.includes('--help')) {
     io.stdout(`${USAGE}\n`);
@@ -32,6 +52,7 @@ export async function run(argv: string[], io: CliIO = processIO): Promise<number
   }
   const outDirFlag = argv.indexOf('--out-dir');
   const outDir = outDirFlag === -1 ? dirname(resolve(input)) : resolve(argv[outDirFlag + 1] ?? '.');
+  const wantExport = argv.includes('--export');
 
   let xml: string;
   try {
@@ -53,6 +74,28 @@ export async function run(argv: string[], io: CliIO = processIO): Promise<number
     const rendered = formatReport(report);
     writeFileSync(reportPath, `${rendered}\n`);
     io.stdout(`${rendered}\nWrote ${txtPath}\nWrote ${reportPath}\n`);
+    if (!wantExport) return 0;
+    if (!(await exportDeps.isExportAvailable())) {
+      io.stderr(
+        `Error: cannot export "${input}": FamiStudio is unavailable ` +
+          `(check FAMISTUDIO_BIN or FamiStudio on PATH, plus a .NET 8 runtime via DOTNET_ROOT)\n`,
+      );
+      return 1;
+    }
+    let paths: ExportPaths;
+    try {
+      paths = await exportDeps.runExports(txtPath, outDir);
+    } catch (error) {
+      const cause = error instanceof Error ? error.message : String(error);
+      io.stderr(`Error: export failed for "${input}": ${cause}\n`);
+      return 1;
+    }
+    const nes = verifyNesFile(paths.nesPath);
+    if (!nes.passed) {
+      io.stderr(`Error: NES ROM validation failed for "${input}": ${nes.details.join('; ')}\n`);
+      return 1;
+    }
+    io.stdout(`Wrote ${paths.wavPath}\nWrote ${paths.nsfPath}\nWrote ${paths.nesPath}\n`);
     return 0;
   } catch (error) {
     if (error instanceof MusicXmlParseError) {

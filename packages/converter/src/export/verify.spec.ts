@@ -6,6 +6,8 @@ import {
   dominantFrequency,
   midiToFrequency,
   readWavFile,
+  verifyNes,
+  verifyNesFile,
   verifyWav,
   type PcmAudio,
 } from './verify.js';
@@ -118,5 +120,80 @@ describe('readWavFile', () => {
     expect(audio.sampleRate).toBe(RATE);
     expect(audio.samples.length).toBe(tone.length);
     expect(dominantFrequency(audio.samples, RATE)).toBeCloseTo(261.63, 0);
+  });
+});
+
+describe('verifyNes', () => {
+  function rom(prg: number, chr: number, trainer: boolean, nes2 = false): Buffer {
+    const size = 16 + (trainer ? 512 : 0) + prg * 16384 + chr * 8192;
+    const bytes = Buffer.alloc(size);
+    bytes.write('NES\x1A', 0, 'ascii');
+    bytes[4] = prg;
+    bytes[5] = chr;
+    if (trainer) bytes[6] |= 0x04;
+    if (nes2) bytes[7] |= 0x08;
+    return bytes;
+  }
+
+  it('passes a well-formed 2-PRG/1-CHR ROM', () => {
+    const result = verifyNes(rom(2, 1, false));
+    expect(result.passed).toBe(true);
+    expect(result.details.join(' ')).toMatch(/2 PRG/);
+  });
+
+  it('passes a ROM with a trainer', () => {
+    expect(verifyNes(rom(1, 1, true)).passed).toBe(true);
+  });
+
+  it('passes a ROM with zero CHR banks (CHR RAM)', () => {
+    expect(verifyNes(rom(1, 0, false)).passed).toBe(true);
+  });
+
+  it('fails a bad magic', () => {
+    const bytes = rom(2, 1, false);
+    bytes.write('NOPE', 0, 'ascii');
+    const result = verifyNes(bytes);
+    expect(result.passed).toBe(false);
+    expect(result.details.join(' ')).toMatch(/magic/);
+  });
+
+  it('fails a file shorter than the header', () => {
+    const result = verifyNes(Buffer.alloc(10));
+    expect(result.passed).toBe(false);
+    expect(result.details.join(' ')).toMatch(/16-byte/);
+  });
+
+  it('fails a truncated ROM', () => {
+    const bytes = rom(2, 1, false).subarray(0, 100);
+    const result = verifyNes(bytes);
+    expect(result.passed).toBe(false);
+    expect(result.details.join(' ')).toMatch(/declares 40976/);
+  });
+
+  it('fails a ROM with zero PRG banks', () => {
+    const bytes = Buffer.alloc(16);
+    bytes.write('NES\x1A', 0, 'ascii');
+    const result = verifyNes(bytes);
+    expect(result.passed).toBe(false);
+    expect(result.details.join(' ')).toMatch(/zero PRG/);
+  });
+
+  it('fails a NES 2.0 header', () => {
+    const result = verifyNes(rom(2, 1, false, true));
+    expect(result.passed).toBe(false);
+    expect(result.details.join(' ')).toMatch(/2\.0/);
+  });
+
+  it('validates a ROM file on disk', () => {
+    const path = join(mkdtempSync(join(tmpdir(), 'famitune-nes-')), 'game.nes');
+    writeFileSync(path, rom(2, 1, false));
+    expect(verifyNesFile(path).passed).toBe(true);
+  });
+
+  it('fails instead of throwing for a missing ROM file', () => {
+    const path = join(mkdtempSync(join(tmpdir(), 'famitune-nes-')), 'missing.nes');
+    const result = verifyNesFile(path);
+    expect(result.passed).toBe(false);
+    expect(result.details.join(' ')).toMatch(/cannot read ROM file/);
   });
 });

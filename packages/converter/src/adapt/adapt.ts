@@ -10,7 +10,7 @@ import { reduceChords } from './chords.js';
 import { quantizePiece, type QuantizedNote, type QuantizedPiece } from './quantize.js';
 import { realizeTempo, tempoSettingLabel, type RealizedTempo } from './tempo.js';
 
-export interface ConvertedPiece {
+export interface AdaptedPiece {
   piece: QuantizedPiece;
   tempo: RealizedTempo;
   patterns: StreamPattern[];
@@ -19,14 +19,14 @@ export interface ConvertedPiece {
 }
 
 /**
- * Convert a parsed score as far as the implemented stages reach.
+ * Adapt a parsed score to NES constraints.
  * Tie chains merge first (single sounding events), onsets and durations
  * quantize to the row grid, the opening tempo realizes to FamiStudio frame
  * settings, and each stream chunks into per-measure patterns. Later
  * increments extend this pipeline with channel allocation and chord
  * reduction.
  */
-export function convertPiece(parsed: ParsedScore): ConvertedPiece {
+export function adaptPiece(parsed: ParsedScore): AdaptedPiece {
   const events = mergeTies(parsed.events);
   const piece = quantizePiece(events, parsed.tempoMap, parsed.measures);
   const requestedBpm = bpmAt(parsed.tempoMap, 0);

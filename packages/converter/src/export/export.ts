@@ -4,20 +4,20 @@ import { basename, join } from 'node:path';
 import { promisify } from 'node:util';
 
 /**
- * Render stage (design D1/D6): thin wrapper around the pinned FamiStudio
+ * Export stage: thin wrapper around the pinned FamiStudio
  * desktop CLI. All FamiStudio-specific knowledge (binary name, export
- * subcommands, flags) lives here — parse and convert never touch it.
+ * subcommands, flags) lives here — parse and adapt never touch it.
  * Only this stage needs the FamiStudio binary; everything else is testable
  * without it.
  */
 
 export type ExecFn = (bin: string, args: string[]) => Promise<{ stdout: string; stderr: string }>;
 
-/** The render failed: names the FamiStudio binary, the failing export, and the cause. */
-export class RenderError extends Error {
+/** The export failed: names the FamiStudio binary, the failing export, and the cause. */
+export class ExportError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'RenderError';
+    this.name = 'ExportError';
   }
 }
 
@@ -50,56 +50,64 @@ async function runExport(
   exec: ExecFn,
   bin: string,
   args: string[],
-  kind: 'wav-export' | 'nsf-export',
+  kind: 'wav-export' | 'nsf-export' | 'rom-export',
   txtPath: string,
 ): Promise<void> {
   try {
     await exec(bin, args);
   } catch (error) {
     const cause = error instanceof Error ? error.message : String(error);
-    throw new RenderError(`${kind} failed for "${txtPath}" using "${bin}": ${cause}`);
+    throw new ExportError(`${kind} failed for "${txtPath}" using "${bin}": ${cause}`);
   }
 }
 
-export interface RenderPaths {
+export interface ExportPaths {
   wavPath: string;
   nsfPath: string;
+  nesPath: string;
 }
 
 /**
- * Render FamiStudio Text to WAV and NSF via the pinned CLI:
- * `FamiStudio out.txt wav-export out.wav` and
- * `FamiStudio out.txt nsf-export out.nsf -nsf-export-mode:ntsc`.
+ * Export FamiStudio Text to WAV, NSF, and NES ROM via the pinned CLI:
+ * `FamiStudio out.txt wav-export out.wav`,
+ * `FamiStudio out.txt nsf-export out.nsf -nsf-export-mode:ntsc`, and
+ * `FamiStudio out.txt rom-export out.nes -rom-export-mode:ntsc`.
+ * The ROM mode flag is explicit (not the project-mode default): `-help`
+ * lists `-rom-export-mode:ntsc|pal|dual`, and NTSC matches the converter's
+ * frame model, mirroring the NSF export.
  */
-export async function renderOutputs(
+export async function exportOutputs(
   txtPath: string,
   outDir: string,
   opts?: { bin?: string; exec?: ExecFn; wavChannelsMask?: string },
-): Promise<RenderPaths> {
+): Promise<ExportPaths> {
   const bin = locateFamiStudio(opts?.bin);
   const exec = opts?.exec ?? defaultExec;
   const stem = stemOf(txtPath);
   mkdirSync(outDir, { recursive: true });
   const wavPath = join(outDir, `${stem}.wav`);
   const nsfPath = join(outDir, `${stem}.nsf`);
+  const nesPath = join(outDir, `${stem}.nes`);
   const wavArgs = [txtPath, 'wav-export', wavPath];
   if (opts?.wavChannelsMask !== undefined) wavArgs.push(`-wav-export-channels:${opts.wavChannelsMask}`);
   await runExport(exec, bin, wavArgs, 'wav-export', txtPath);
   await runExport(exec, bin, [txtPath, 'nsf-export', nsfPath, '-nsf-export-mode:ntsc'], 'nsf-export', txtPath);
+  await runExport(exec, bin, [txtPath, 'rom-export', nesPath, '-rom-export-mode:ntsc'], 'rom-export', txtPath);
   // FamiStudio exits zero even when an export fails, so confirm the
   // artifacts exist and are non-empty (task 4.2 verification).
   for (const [kind, path] of [
     ['wav-export', wavPath],
     ['nsf-export', nsfPath],
+    ['rom-export', nesPath],
   ] as const) {
     if (outputBytes(path) <= 0) {
-      throw new RenderError(`${kind} produced no output for "${txtPath}" using "${bin}"`);
+      throw new ExportError(`${kind} produced no output for "${txtPath}" using "${bin}"`);
     }
   }
-  return { wavPath, nsfPath };
+  return { wavPath, nsfPath, nesPath };
 }
 
-/** True when the pinned FamiStudio CLI answers (used to gate render tests). */
+/** True when the pinned FamiStudio CLI answers (used to gate export tests). */
 export async function isFamiStudioAvailable(opts?: { bin?: string; exec?: ExecFn }): Promise<boolean> {
   const bin = locateFamiStudio(opts?.bin);
   const exec = opts?.exec ?? defaultExec;
