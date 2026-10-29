@@ -47,7 +47,7 @@ describeFeature(feature, ({ Scenario }) => {
     });
   });
 
-  Scenario('Repeated notes export with an audible gap', ({ Given, When, Then }) => {
+  Scenario('Repeated notes export with an audible gap', ({ Given, When, Then, And }) => {
     let dir = '';
     let wavPath = '';
     let skipped = false;
@@ -72,7 +72,7 @@ describeFeature(feature, ({ Scenario }) => {
       expect(hasAudibleGapInFile(wavPath, 1.0), `${wavPath}: no gap at 1s`).toBe(true);
     });
 
-    Then('the WAV has no gap inside the tied note at 6 seconds', () => {
+    And('the WAV has no gap inside the tied note at 6 seconds', () => {
       if (skipped) return;
       expect(hasAudibleGapInFile(wavPath, 6.0), `${wavPath}: gap at 6s`).toBe(false);
     });

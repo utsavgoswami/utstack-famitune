@@ -76,10 +76,12 @@ rule.
   and many `<notations><slur>` elements, and the converter reads `<tie>`
   only. Rule: before you blame the tie code, count `<tie>` in the source
   file and read the `<tie>` code path.
-- `@amiceli/vitest-cucumber` in this repo does not bind an `And` step in
-  a feature file. The test run fails with `StepAbleUnknowStepError`.
-  Rule: write each step with an explicit `Given`, `When`, or `Then` in
-  `packages/converter/features/`.
+- In `@amiceli/vitest-cucumber` 8.0.0, the step keyword is part of the
+  step match. An `And` step in a feature file does not use the `Then`
+  handler for the same text. It needs an `And` handler. A mismatch fails
+  with `StepAbleUnknowStepError`. Rule: use the same keyword in the
+  feature file and in the step definition. `And` is valid when the step
+  definition uses `And`.
 
 ## Verification discipline
 
@@ -103,6 +105,11 @@ rule.
   clear the parse and write stages. The third fact places the fault in
   the export sound. Rule: check source tags, exported text, and WAV
   sound level as separate layers.
+- One failed test run gives a symptom, not a rule. The `And` step failure
+  first produced a ban on `And` in this file. The library source then
+  showed the true cause: the keyword is part of the step match. Rule:
+  read the error, then check the library source or docs, then write the
+  rule. Do not write a ban from one failure.
 - A green test run can mean the export scenarios did not run. The
   `@export` scenarios skip with no error if `isFamiStudioAvailable()`
   returns false, and that check fails if the shell has no `DOTNET_ROOT`.

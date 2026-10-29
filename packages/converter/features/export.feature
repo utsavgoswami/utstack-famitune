@@ -14,4 +14,4 @@ Feature: Exported audio verification
     Given the Repeated Notes FamiStudio Text
     When the pinned build exports WAV output from the Repeated Notes text
     Then the WAV has a gap before the repeated note at 1 second
-    Then the WAV has no gap inside the tied note at 6 seconds
+    And the WAV has no gap inside the tied note at 6 seconds
