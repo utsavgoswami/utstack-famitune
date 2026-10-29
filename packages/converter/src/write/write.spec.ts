@@ -34,6 +34,21 @@ describe('writeFamiStudioText', () => {
     expect(text).toContain('Project Version="4.5.0"');
   });
 
+  it('writes the first note of a repeated pair 1 subrow short', () => {
+    const parsed = parseScore(
+      SCORE(
+        `<measure number="1"><attributes><divisions>1</divisions></attributes>` +
+          `<note><pitch><step>B</step><octave>4</octave></pitch><duration>2</duration></note>` +
+          `<note><pitch><step>B</step><octave>4</octave></pitch><duration>2</duration></note></measure>`,
+      ),
+    );
+    const { text, report } = convertScoreToText('Repeat', parsed);
+    expect(report.articulatedRepeats).toBe(1);
+    const durations = [...text.matchAll(/Note Time="\d+" Value="B3" Duration="(\d+)"/g)].map((m) => Number(m[1]));
+    expect(durations).toHaveLength(2);
+    expect(durations[0]).toBe(durations[1] - 1);
+  });
+
   it('counts octave-shifted notes into the report', () => {
     const parsed = parseScore(
       SCORE(

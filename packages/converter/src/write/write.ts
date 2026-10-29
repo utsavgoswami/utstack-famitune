@@ -146,7 +146,7 @@ export function writeFamiStudioText(project: SongProject): WrittenSong {
         if (named.octaveShifted) octaveShiftedNotes++;
         channelNotes++;
         lines.push(
-          `\t\t\t\tNote Time="${note.row * base}" Value="${named.name}" Duration="${note.durationRows * base}" Instrument="${assignment.instrument}"`,
+          `\t\t\t\tNote Time="${note.row * base}" Value="${named.name}" Duration="${note.durationRows * base - (note.gapSubrows ?? 0)}" Instrument="${assignment.instrument}"`,
         );
       }
     }

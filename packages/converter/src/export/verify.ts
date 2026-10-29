@@ -184,6 +184,35 @@ export function verifyWav(
   return { passed, details };
 }
 
+/**
+ * True when a short time with no sound sits just before `atSeconds`.
+ * The check uses the lowest 4 ms sound level in the 2 frames before the
+ * time. A level under one quarter of the level after the time counts as
+ * a gap. A note with the same pitch on both sides of the time passes
+ * only if the gap is present.
+ */
+export function hasAudibleGap(
+  audio: PcmAudio,
+  atSeconds: number,
+  frameSeconds: number = NES_FRAME_SECONDS,
+): boolean {
+  const windowSamples = Math.max(1, Math.floor(0.004 * audio.sampleRate));
+  const stepSamples = Math.max(1, Math.floor(0.001 * audio.sampleRate));
+  const center = Math.floor(atSeconds * audio.sampleRate);
+  let lowest = Number.POSITIVE_INFINITY;
+  for (let start = center - Math.ceil(2 * frameSeconds * audio.sampleRate); start < center; start += stepSamples) {
+    lowest = Math.min(lowest, rms(audio.samples, start, start + windowSamples));
+  }
+  const after = rms(audio.samples, center + Math.floor(0.01 * audio.sampleRate), center + Math.floor(0.06 * audio.sampleRate));
+  if (after === 0) return false;
+  return lowest < after * 0.25;
+}
+
+/** Read a WAV file and check for a gap just before a time. */
+export function hasAudibleGapInFile(path: string, atSeconds: number): boolean {
+  return hasAudibleGap(readWavFile(path), atSeconds);
+}
+
 /** Read a WAV file and verify it against scored segments. */
 export function verifyWavFile(path: string, expected: ExpectedSegment[], expectedTotalSeconds?: number): VerifyResult {
   const audio = readWavFile(path);

@@ -6,6 +6,7 @@ import helloWorldXml from '../../../../packages/converter/fixtures/hello-world.m
 import chromaticXml from '../../../../packages/converter/fixtures/chromatic-scale.musicxml?raw';
 import restsTieXml from '../../../../packages/converter/fixtures/rests-and-tie.musicxml?raw';
 import twoStreamXml from '../../../../packages/converter/fixtures/two-stream-excerpt.musicxml?raw';
+import repeatedXml from '../../../../packages/converter/fixtures/repeated-notes.musicxml?raw';
 import helloWorldWav from '../../../../packages/converter/exports/hello-world/hello-world.wav?url';
 import chromaticWav from '../../../../packages/converter/exports/chromatic-scale/chromatic-scale.wav?url';
 import restsTieWav from '../../../../packages/converter/exports/rests-and-tie/rests-and-tie.wav?url';
@@ -14,6 +15,8 @@ import helloWorldNsf from '../../../../packages/converter/exports/hello-world/he
 import chromaticNsf from '../../../../packages/converter/exports/chromatic-scale/chromatic-scale.nsf?url';
 import restsTieNsf from '../../../../packages/converter/exports/rests-and-tie/rests-and-tie.nsf?url';
 import twoStreamNsf from '../../../../packages/converter/exports/two-stream-excerpt/two-stream-excerpt.nsf?url';
+import repeatedWav from '../../../../packages/converter/exports/repeated-notes/repeated-notes.wav?url';
+import repeatedNsf from '../../../../packages/converter/exports/repeated-notes/repeated-notes.nsf?url';
 
 type Fixture = {
   id: string;
@@ -83,6 +86,21 @@ const FIXTURES: Fixture[] = [
       'A4 follows the chord, then silence.',
     ],
     losses: 'One declared loss: 2 dropped chord tones, counted in the report.',
+  },
+  {
+    id: 'repeated-notes',
+    title: '5. Repeated notes',
+    xml: repeatedXml,
+    scoreLabel: 'Untied repeat, different pitches, a tie across a barline, and a rest gap',
+    wav: repeatedWav,
+    nsf: repeatedNsf,
+    listenFor: [
+      'Two B half notes sound as two notes, with a short silent time between them.',
+      'C and D sound as two notes with no silent time between them.',
+      'One unbroken B across the barline (2 seconds, no new start).',
+      'E, a silent quarter rest, then E again.',
+    ],
+    losses: 'One declared loss: the first B of the untied pair is 1 subrow short, counted in the report.',
   },
 ];
 

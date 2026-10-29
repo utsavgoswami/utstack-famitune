@@ -43,3 +43,8 @@ Feature: Event conversion to rows
     Given a measure with a quarter rest between two notes
     When the converter quantizes the measure
     Then no note sounds during the rest and the following note starts at the correct position
+
+  Scenario: Repeated note with the same pitch gets a short silent time
+    Given a measure with two half notes with the same pitch and no tie
+    When the converter converts the measure
+    Then the first note is 1 subrow short and the report counts 1 shortened note

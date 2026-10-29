@@ -15,6 +15,7 @@ const LADDER = [
   { file: 'chromatic-scale.musicxml', title: 'Chromatic Scale', chordDrops: 0, notes: 25 },
   { file: 'rests-and-tie.musicxml', title: 'Rests and Tie Melody', chordDrops: 0, notes: 4 },
   { file: 'two-stream-excerpt.musicxml', title: 'Two-Stream Excerpt', chordDrops: 2, notes: 6 },
+  { file: 'repeated-notes.musicxml', title: 'Repeated Notes', chordDrops: 0, notes: 7 },
 ];
 
 describe('fixture ladder', () => {
@@ -33,6 +34,13 @@ describe('fixture ladder', () => {
       expect(sounded).toBe(notes);
     });
   }
+
+  it('shortens one repeated note in the repeated-notes fixture', () => {
+    const xml = readFileSync(join(import.meta.dirname, '../fixtures/repeated-notes.musicxml'), 'utf8');
+    const { report } = convertScoreToText('Repeated Notes', parseScore(xml));
+    expect(report.articulatedRepeats).toBe(1);
+    expect(report.articulationSkips).toBe(0);
+  });
 
   it('allocates the two-stream excerpt to Square 1 and Triangle', () => {
     const xml = readFileSync(join(import.meta.dirname, '../fixtures/two-stream-excerpt.musicxml'), 'utf8');

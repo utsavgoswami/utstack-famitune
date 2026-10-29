@@ -6,7 +6,7 @@ import { expect } from 'vitest';
 import { parseScore } from '../parse/parse.js';
 import { convertScoreToText } from '../write/write.js';
 import { isFamiStudioAvailable, exportOutputs } from './export.js';
-import { verifyNesFile, verifyWavFile } from './verify.js';
+import { hasAudibleGapInFile, verifyNesFile, verifyWavFile } from './verify.js';
 
 const feature = await loadFeature(join(import.meta.dirname, '../../features/export.feature'));
 
@@ -44,6 +44,37 @@ describeFeature(feature, ({ Scenario }) => {
         4 * quarterSeconds,
       );
       expect(result.passed, `${wavPath}: ${result.details.join('; ')}`).toBe(true);
+    });
+  });
+
+  Scenario('Repeated notes export with an audible gap', ({ Given, When, Then }) => {
+    let dir = '';
+    let wavPath = '';
+    let skipped = false;
+
+    Given('the Repeated Notes FamiStudio Text', () => {
+      dir = mkdtempSync(join(tmpdir(), 'famitune-export-'));
+      const xml = readFileSync(join(import.meta.dirname, '../../fixtures/repeated-notes.musicxml'), 'utf8');
+      const { text } = convertScoreToText('Repeated Notes', parseScore(xml));
+      writeFileSync(join(dir, 'repeated.txt'), text);
+    });
+
+    When('the pinned build exports WAV output from the Repeated Notes text', async () => {
+      if (!(await isFamiStudioAvailable())) {
+        skipped = true;
+        return;
+      }
+      wavPath = (await exportOutputs(join(dir, 'repeated.txt'), dir)).wavPath;
+    });
+
+    Then('the WAV has a gap before the repeated note at 1 second', () => {
+      if (skipped) return;
+      expect(hasAudibleGapInFile(wavPath, 1.0), `${wavPath}: no gap at 1s`).toBe(true);
+    });
+
+    Then('the WAV has no gap inside the tied note at 6 seconds', () => {
+      if (skipped) return;
+      expect(hasAudibleGapInFile(wavPath, 6.0), `${wavPath}: gap at 6s`).toBe(false);
     });
   });
 

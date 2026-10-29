@@ -36,6 +36,10 @@ export interface ConversionReport {
   chordTonesKept: number;
   /** Chord tones removed by reduction. */
   chordTonesDropped: number;
+  /** Repeated same-pitch notes shortened by 1 subrow so the next note is audible. */
+  articulatedRepeats: number;
+  /** Repeated same-pitch notes left at full length because 1 subrow is the whole note. */
+  articulationSkips: number;
   /** Notes moved by octaves into the NES pitch range. */
   octaveShiftedNotes: number;
   /** Converted note counts per channel. */
@@ -56,6 +60,8 @@ export function emptyReport(): ConversionReport {
     droppedStreams: [],
     chordTonesKept: 0,
     chordTonesDropped: 0,
+    articulatedRepeats: 0,
+    articulationSkips: 0,
     octaveShiftedNotes: 0,
     notesPerChannel: [],
   };
@@ -80,6 +86,8 @@ export function createReport(input: {
     droppedStreams: [],
     chordTonesKept: 0,
     chordTonesDropped: 0,
+    articulatedRepeats: 0,
+    articulationSkips: 0,
     octaveShiftedNotes: 0,
     notesPerChannel: [],
   };
@@ -126,6 +134,12 @@ export function formatReport(report: ConversionReport): string {
   }
   if (report.chordTonesKept + report.chordTonesDropped > 0) {
     lines.push(`- Chord tones: kept ${report.chordTonesKept}, dropped ${report.chordTonesDropped}`);
+  }
+  if (report.articulatedRepeats > 0) {
+    lines.push(`- Repeated notes shortened by 1 subrow: ${report.articulatedRepeats}`);
+  }
+  if (report.articulationSkips > 0) {
+    lines.push(`- Repeated notes too short to shorten: ${report.articulationSkips}`);
   }
   if (report.octaveShiftedNotes > 0) {
     lines.push(`- Octave-shifted pitches: ${report.octaveShiftedNotes}`);

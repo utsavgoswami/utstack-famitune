@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   dominantFrequency,
+  hasAudibleGap,
   midiToFrequency,
   readWavFile,
   verifyNes,
@@ -92,6 +93,18 @@ describe('verifyWav', () => {
       0.5,
     );
     expect(bad.passed).toBe(false);
+  });
+});
+
+describe('hasAudibleGap', () => {
+  it('finds a gap before a repeated note with the same pitch', () => {
+    const samples = concat(sine(71, 0.5), new Float64Array(Math.floor(0.02 * RATE)), sine(71, 0.5));
+    expect(hasAudibleGap({ samples, sampleRate: RATE }, 0.52)).toBe(true);
+  });
+
+  it('finds no gap in one long note', () => {
+    const samples = sine(71, 1.0);
+    expect(hasAudibleGap({ samples, sampleRate: RATE }, 0.5)).toBe(false);
   });
 });
 

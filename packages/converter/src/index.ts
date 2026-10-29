@@ -5,6 +5,7 @@ export * from './parse/tempo.js';
 export * from './parse/ties.js';
 export * from './adapt/adapt.js';
 export * from './adapt/allocate.js';
+export * from './adapt/articulate.js';
 export * from './adapt/chords.js';
 export * from './adapt/patterns.js';
 export * from './adapt/quantize.js';

@@ -8,6 +8,8 @@ export interface PatternNote {
   row: number;
   durationRows: number;
   midi: number;
+  /** Silent subrows at the end of the note, set by the articulation rule. */
+  gapSubrows?: number;
 }
 
 export interface StreamPattern {

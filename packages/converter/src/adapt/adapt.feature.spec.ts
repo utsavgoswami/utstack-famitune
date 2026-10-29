@@ -236,6 +236,27 @@ describeFeature(feature, ({ Scenario }) => {
     });
   });
 
+  Scenario('Repeated note with the same pitch gets a short silent time', ({ Given, When, Then }) => {
+    let xml = '';
+    let gaps: Array<number | undefined> = [];
+    let report: ConversionReport | undefined;
+
+    Given('a measure with two half notes with the same pitch and no tie', () => {
+      xml = SCORE('1', NOTE('B', 4, 2) + NOTE('B', 4, 2));
+    });
+
+    When('the converter converts the measure', () => {
+      const adapted = adaptPiece(parseScore(xml));
+      gaps = adapted.allocation.assigned.flatMap((a) => a.patterns.flatMap((p) => p.notes.map((n) => n.gapSubrows)));
+      report = adapted.report;
+    });
+
+    Then('the first note is 1 subrow short and the report counts 1 shortened note', () => {
+      expect(gaps).toEqual([1, undefined]);
+      expect(report?.articulatedRepeats).toBe(1);
+    });
+  });
+
   Scenario('Rest produces a gap', ({ Given, When, Then }) => {
     let xml = '';
     let piece: QuantizedPiece | undefined;

@@ -111,7 +111,8 @@ OpenSpec design decision D7 in
 `openspec/changes/musicxml-to-nes-vertical-slice/design.md`.
 | Overlapping notes in one stream (should not happen after stream split) | Truncate the earlier note at the next onset; report |
 | Tie chain (`<tie start/stop>`) | Merge into one event, durations summed, before quantization. (Read `<tie>`, not `<notations><tied>`) |
-| Rest / gap (incl. `<forward>` gaps) | Emit nothing; the previous note's `Duration` already ends it. A trailing articulation gap (e.g. shorten every note by 1 frame for separation) is **off** by default — durations stay faithful until listening says otherwise |
+| Rest / gap (incl. `<forward>` gaps) | Emit nothing; the previous note's `Duration` already ends it |
+| Repeated note with the same pitch (no tie, no time between the notes) | Shorten the first note by 1 subrow. One subrow is one part of a row. `NoteLength` gives the number of subrows in one row. Keep the note at 1 subrow or more. Report the count of shortened notes and the count of notes that the rule could not shorten. The rule runs after chord reduction, on the final note of each channel, and across pattern boundaries. Listening to the Rieding Op. 35 export gave the reason for this rule: two notes with the same pitch and no silent time between them sound as one note with a flat envelope |
 | Note exactly at pattern end | `Duration` may end on the pattern boundary; do not spill into the next pattern — split with `Attack="False"` continuation only if a duration must cross (prefer exact measure alignment so this is rare) |
 
 # 6. Instruments and volume

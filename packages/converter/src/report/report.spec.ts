@@ -27,6 +27,13 @@ describe('conversion report skeleton', () => {
   it('renders cleanly when nothing is unhandled', () => {
     expect(formatReport(emptyReport())).toContain('Unhandled constructs: none');
   });
+
+  it('gives the repeated-note counts', () => {
+    const report = { ...emptyReport(), articulatedRepeats: 3, articulationSkips: 1 };
+    const text = formatReport(report);
+    expect(text).toContain('Repeated notes shortened by 1 subrow: 3');
+    expect(text).toContain('Repeated notes too short to shorten: 1');
+  });
 });
 
 describe('zero silent drops', () => {

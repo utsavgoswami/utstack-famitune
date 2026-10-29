@@ -64,13 +64,15 @@ otherwise.
 | 2 | `chromatic-scale.musicxml` (C4–C5 up and down, ♩=120) | Clean: 25 notes, sharps up / flats down respelled pitch-exact (respellings noted in the report), zero losses | WAV+NSF+NES export; all 25 segment pitches and onsets pass automatically; ROM valid | Pass — human listening |
 | 3 | `rests-and-tie.musicxml` (rests, dots, tie across barline) | Clean: tie merges to one 3-quarter D, rest gaps exact, zero losses | WAV+NSF+NES export; all 4 segments pass automatically; ROM valid | Pass — human listening |
 | 4 | `two-stream-excerpt.musicxml` (melody + bass, 3-note chord) | One declared loss: chord keeps the highest pitch (2 dropped, reported); melody on Square 1, bass on Triangle; nothing else lost | WAV+NSF+NES export; Square 1 (4 notes) and Triangle (2 notes) each pass automatically; ROM valid | Pass — human listening |
+| 5 | `repeated-notes.musicxml` (untied repeat, tied pair, rest gap) | One declared loss: the first note of the untied pair is 1 subrow short (reported); the tied pair stays one note; nothing else lost | WAV+NSF+NES export; the WAV has a sound drop before the repeated note and no drop inside the tied note; ROM valid | Pending — human listening |
 
-Export all four with `famitune-convert --export`.
+Export all five with `famitune-convert --export`.
 The `exports/` directory (git-ignored) holds per-fixture `.txt`, `.report.txt`,
 `.wav`, `.nsf`, and `.nes` output ready for listening.
 Automated audio verification (`src/export/verify.ts`) checks every segment
 pitch (no octave tolerance: an octave mismatch is a real bug) and every
-onset against one NES frame. `verifyNesFile` checks the ROM's iNES header
+onset against one NES frame. `hasAudibleGap` checks for a short time with
+no sound before a repeated note. `verifyNesFile` checks the ROM's iNES header
 (magic plus header-declared bank sizes reconciled against file size).
 Play each NSF in an NSF player or emulator as
 the real-NES check; the verdicts in the table above record the result.

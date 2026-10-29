@@ -6,6 +6,7 @@ import { mergeTies } from '../parse/ties.js';
 import type { ConversionReport } from '../report/report.js';
 import { chunkStream, type StreamPattern } from './patterns.js';
 import { allocateStreams, streamLabel, type Allocation } from './allocate.js';
+import { articulatePatterns } from './articulate.js';
 import { reduceChords } from './chords.js';
 import { quantizePiece, type QuantizedNote, type QuantizedPiece } from './quantize.js';
 import { realizeTempo, tempoSettingLabel, type RealizedTempo } from './tempo.js';
@@ -61,11 +62,19 @@ export function adaptPiece(parsed: ParsedScore): AdaptedPiece {
   const allocation = allocateStreams(streams, (stream) => patternsByStream.get(streamKey(stream)) ?? []);
   let chordTonesKept = 0;
   let chordTonesDropped = 0;
+  let articulatedRepeats = 0;
+  let articulationSkips = 0;
   for (const assignment of allocation.assigned) {
     const reduced = reduceChords(assignment.patterns);
-    assignment.patterns = reduced.patterns;
+    const articulated = articulatePatterns(
+      reduced.patterns,
+      (pattern) => pattern.tempo?.noteLengthBase ?? tempo.noteLengthBase,
+    );
+    assignment.patterns = articulated.patterns;
     chordTonesKept += reduced.kept;
     chordTonesDropped += reduced.dropped;
+    articulatedRepeats += articulated.articulated;
+    articulationSkips += articulated.skipped;
   }
   const report: ConversionReport = {
     unhandled: parsed.unhandled.map((u) => ({ ...u })),
@@ -80,6 +89,8 @@ export function adaptPiece(parsed: ParsedScore): AdaptedPiece {
     droppedStreams: allocation.dropped.map((d) => ({ stream: streamLabel(d.stream), noteCount: d.noteCount })),
     chordTonesKept,
     chordTonesDropped,
+    articulatedRepeats,
+    articulationSkips,
     octaveShiftedNotes: 0,
     notesPerChannel: [],
   };
